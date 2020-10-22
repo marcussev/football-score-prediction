@@ -95,10 +95,9 @@ def convert_data():
 
 # Calculate averages for given metric of given games
 def calculate_average_xg(data, team, round):
-    home_games = data[data['teamA'] == team][0:round - 1]
-    away_games = data[data['teamB'] == team][0:round - 1]
-    print(team + ": " + str((home_games['A_xG'].mean() + away_games['B_xG'].mean()) / 2))
-    return (home_games['A_xG'].mean() + away_games['B_xG'].mean()) / 2
+    home_games = data[data['teamA'] == team][0:round-1]
+    away_games = data[data['teamB'] == team][0:round-1]
+    return (home_games['A_xG'].mean() + away_games['B_xG'].mean())/2
 
 
 convert_data()
