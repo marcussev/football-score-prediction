@@ -32,7 +32,7 @@ def convert_data():
                                                               'tot_con': ",".join,
                                                               'round': 'max'
                                                               }).reset_index()
-    #print(results)
+    # print(results)
 
     # Combine rows so that each game has only one row
     results['teamA'] = results['teamId'].apply(lambda x: x.split(',')[0])
@@ -63,15 +63,22 @@ def convert_data():
     results.loc[results['round'] == 1, ['A_tot_points', 'B_tot_points', 'A_tot_goal', 'B_tot_goal', 'A_tot_con',
                                         'B_tot_con']] = 0
     results['A_tot_points'][2:] = results['A_tot_points'][1:len(results['A_tot_points']) - 1]
-    #print(results[results['round'] == 10])
+    # print(results[results['round'] == 10])
 
     # Update expected goals so that it is the average of previous games for each team
     teams = results['teamA'].unique()
 
-    for i in range(0, len(teams)):
-        team_games = results[results['teamA'] == teams[i]]
-        for y in range(0, len(team_games)):
-            results[results['teamA'] == teams[i]]['A_xG'] = calculate_average_xg(results, teams[i], y+1)
+    # Function to update xg in every row
+    def update_xg(row):
+        row['A_xG'] = calculate_average_xg(results, row['teamA'], row['round'])
+        row['B_xG'] = calculate_average_xg(results, row['teamB'], row['round'])
+
+    results.apply(update_xg)
+
+    # for i in range(0, len(teams)):
+    #     team_games = results[results['teamA'] == teams[i]]
+    #     for y in range(0, len(team_games)):
+    #         results[results['teamA'] == teams[i]]['A_xG'] = calculate_average_xg(results, teams[i], y+1)
 
     print(results[results['teamA'] == "Liverpool"])
     '''
@@ -88,10 +95,10 @@ def convert_data():
 
 # Calculate averages for given metric of given games
 def calculate_average_xg(data, team, round):
-    home_games = data[data['teamA'] == team][0:round-1]
-    away_games = data[data['teamB'] == team][0:round-1]
-    print(team + ": " + str((home_games['A_xG'].mean() + away_games['B_xG'].mean())/2))
-    return (home_games['A_xG'].mean() + away_games['B_xG'].mean())/2
+    home_games = data[data['teamA'] == team][0:round - 1]
+    away_games = data[data['teamB'] == team][0:round - 1]
+    print(team + ": " + str((home_games['A_xG'].mean() + away_games['B_xG'].mean()) / 2))
+    return (home_games['A_xG'].mean() + away_games['B_xG'].mean()) / 2
 
 
 convert_data()
