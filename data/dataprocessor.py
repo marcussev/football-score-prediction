@@ -1,4 +1,5 @@
 import pandas as pd
+from itertools import islice
 
 '''
 * This file can be ran to convert the raw data from epl2020.csv to a suitable format for this project
@@ -35,8 +36,8 @@ def convert_data():
     # print(results)
 
     # Combine rows so that each game has only one row
-    results['teamA'] = results['teamId'].apply(lambda x: x.split(',')[0])
-    results['teamB'] = results['teamId'].apply(lambda x: x.split(',')[1])
+    results['teamA'] = results['teamId'].apply(lambda x: x.split(',')[1])
+    results['teamB'] = results['teamId'].apply(lambda x: x.split(',')[0])
     results['A_scored'] = results['scored'].apply(lambda x: x.split(',')[0]).astype('uint16')
     results['B_scored'] = results['scored'].apply(lambda x: x.split(',')[1]).astype('uint16')
     results['A_xG'] = results['xG'].apply(lambda x: x.split(',')[0]).astype('float')
@@ -60,44 +61,34 @@ def convert_data():
 
     # Totals needs to be from previous games, not including current game
     # Therefore set all totals from first round to 0, and shift stats backwards 1 round
-    results.loc[results['round'] == 1, ['A_tot_points', 'B_tot_points', 'A_tot_goal', 'B_tot_goal', 'A_tot_con',
-                                        'B_tot_con']] = 0
-    results['A_tot_points'][2:] = results['A_tot_points'][1:len(results['A_tot_points']) - 1]
+    # results.loc[results['round'] == 1, ['A_tot_points', 'B_tot_points', 'A_tot_goal', 'B_tot_goal', 'A_tot_con',
+    #                                   'B_tot_con']] = 0
+
+    for i, row in islice(results.iterrows(), 1, None):
+        results.loc[i, 'A_tot_points'] = results[(results['round'] == row['round'] - 1) & (
+                (results['teamA'] == row['teamA']) | (results['teamB'] == row['teamA']))]['A_tot_points']
     # print(results[results['round'] == 10])
 
-    # Update expected goals so that it is the average of previous games for each team
-    teams = results['teamA'].unique()
-
-    # Function to update xg in every row
-    def update_xg(row):
-        row['A_xG'] = calculate_average_xg(results, row['teamA'], row['round'])
-        row['B_xG'] = calculate_average_xg(results, row['teamB'], row['round'])
-
-    results.apply(update_xg)
+    # Update rows so that it has average values from previous games
+    for i, row in results.iterrows():
+        results.loc[i, 'A_xG'] = calculate_average(results, row['teamA'], row['round'], 'xG')
+        results.loc[i, 'B_xG'] = calculate_average(results, row['teamB'], row['round'], 'xG')
+        results.loc[i, 'A_xGA'] = calculate_average(results, row['teamA'], row['round'], 'xGA')
+        results.loc[i, 'B_xGA'] = calculate_average(results, row['teamB'], row['round'], 'xGA')
 
     # for i in range(0, len(teams)):
     #     team_games = results[results['teamA'] == teams[i]]
     #     for y in range(0, len(team_games)):
     #         results[results['teamA'] == teams[i]]['A_xG'] = calculate_average_xg(results, teams[i], y+1)
 
-    print(results[results['teamA'] == "Liverpool"])
-    '''
-    # Remove non interesting columns
-    converted_data = raw_data[["match_id", "teamId", "h_a", "xG", "xGA", "scored", "conceded",
-                               "tot_points", "tot_goal", "tot_con", "round"]]
-
-    # Reformat fields with totals to averages
-    converted_data["tot_points"] = converted_data["tot_points"] / converted_data["round"]
-    converted_data.rename(index=int, columns={"tot_points": "ppg"})
-    print(converted_data)
-    '''
+    print(results[results['teamB'] == "Arsenal"])
 
 
 # Calculate averages for given metric of given games
-def calculate_average_xg(data, team, round):
-    home_games = data[data['teamA'] == team][0:round-1]
-    away_games = data[data['teamB'] == team][0:round-1]
-    return (home_games['A_xG'].mean() + away_games['B_xG'].mean())/2
+def calculate_average(data, team, round, metric):
+    home_games = data[data['teamA'] == team][0:round - 1]
+    away_games = data[data['teamB'] == team][0:round - 1]
+    return (home_games['A_' + metric].mean() + away_games['B_' + metric].mean()) / 2
 
 
 convert_data()
