@@ -36,8 +36,8 @@ def convert_data():
     # print(results)
 
     # Combine rows so that each game has only one row
-    results['teamA'] = results['teamId'].apply(lambda x: x.split(',')[1])
-    results['teamB'] = results['teamId'].apply(lambda x: x.split(',')[0])
+    results['teamA'] = results['teamId'].apply(lambda x: x.split(',')[0])
+    results['teamB'] = results['teamId'].apply(lambda x: x.split(',')[1])
     results['A_scored'] = results['scored'].apply(lambda x: x.split(',')[0]).astype('uint16')
     results['B_scored'] = results['scored'].apply(lambda x: x.split(',')[1]).astype('uint16')
     results['A_xG'] = results['xG'].apply(lambda x: x.split(',')[0]).astype('float')
@@ -61,34 +61,71 @@ def convert_data():
 
     # Totals needs to be from previous games, not including current game
     # Therefore set all totals from first round to 0, and shift stats backwards 1 round
-    # results.loc[results['round'] == 1, ['A_tot_points', 'B_tot_points', 'A_tot_goal', 'B_tot_goal', 'A_tot_con',
-    #                                   'B_tot_con']] = 0
+    res_copy = results.copy()
+    for i, row in results[results['round'] > 1].iterrows():
+        previous_games = results[:i]
+        last_game_a = previous_games.loc[previous_games.where((previous_games['teamA'] == row['teamA']) | (
+                previous_games['teamB'] == row['teamA'])).last_valid_index()]
+        last_game_b = previous_games.loc[previous_games.where((previous_games['teamA'] == row['teamB']) | (
+                previous_games['teamB'] == row['teamB'])).last_valid_index()]
 
-    for i, row in islice(results.iterrows(), 1, None):
-        results.loc[i, 'A_tot_points'] = results[(results['round'] == row['round'] - 1) & (
-                (results['teamA'] == row['teamA']) | (results['teamB'] == row['teamA']))]['A_tot_points']
-    # print(results[results['round'] == 10])
+        # Update for teamA
+        if last_game_a['teamA'] == row['teamA']:
+            res_copy.loc[i, 'A_tot_points'] = last_game_a['A_tot_points']
+            res_copy.loc[i, 'A_tot_goal'] = last_game_a['A_tot_goal']
+            res_copy.loc[i, 'A_tot_con'] = last_game_a['A_tot_con']
+        elif last_game_a['teamB'] == row['teamA']:
+            res_copy.loc[i, 'A_tot_points'] = last_game_a['B_tot_points']
+            res_copy.loc[i, 'A_tot_goal'] = last_game_a['B_tot_goal']
+            res_copy.loc[i, 'A_tot_con'] = last_game_a['B_tot_con']
+
+        # Update for teamB
+        if last_game_b['teamA'] == row['teamB']:
+            res_copy.loc[i, 'B_tot_points'] = last_game_b['A_tot_points']
+            res_copy.loc[i, 'B_tot_goal'] = last_game_b['A_tot_goal']
+            res_copy.loc[i, 'B_tot_con'] = last_game_b['A_tot_con']
+        elif last_game_b['teamB'] == row['teamB']:
+            res_copy.loc[i, 'B_tot_points'] = last_game_b['B_tot_points']
+            res_copy.loc[i, 'B_tot_goal'] = last_game_b['B_tot_goal']
+            res_copy.loc[i, 'B_tot_con'] = last_game_b['B_tot_con']
+
+    # Update original data
+    results = res_copy
+    # Set first round game stats to 0
+    results.loc[results['round'] == 1, ['A_tot_points', 'B_tot_points', 'A_tot_goal', 'B_tot_goal', 'A_tot_con',
+                                        'B_tot_con']] = 0
+
+    # Convert totals to averages
+    results = results.apply(lambda x: calculate_average_totals(x), axis=1)
+    results.rename(index=int, columns={"A_tot_points": 'A_ppg', 'B_tot_points': 'B_ppg', 'A_tot_goal': 'A_gpg',
+                                       'B_tot_goal': 'B_gpg', 'A_tot_con': 'A_cpg', 'B_tot_con': 'B_cpg'})
 
     # Update rows so that it has average values from previous games
     for i, row in results.iterrows():
-        results.loc[i, 'A_xG'] = calculate_average(results, row['teamA'], row['round'], 'xG')
-        results.loc[i, 'B_xG'] = calculate_average(results, row['teamB'], row['round'], 'xG')
-        results.loc[i, 'A_xGA'] = calculate_average(results, row['teamA'], row['round'], 'xGA')
-        results.loc[i, 'B_xGA'] = calculate_average(results, row['teamB'], row['round'], 'xGA')
+        results.loc[i, 'A_xG'] = calculate_average_xg(results, row['teamA'], row['round'], 'xG')
+        results.loc[i, 'B_xG'] = calculate_average_xg(results, row['teamB'], row['round'], 'xG')
+        results.loc[i, 'A_xGA'] = calculate_average_xg(results, row['teamA'], row['round'], 'xGA')
+        results.loc[i, 'B_xGA'] = calculate_average_xg(results, row['teamB'], row['round'], 'xGA')
 
-    # for i in range(0, len(teams)):
-    #     team_games = results[results['teamA'] == teams[i]]
-    #     for y in range(0, len(team_games)):
-    #         results[results['teamA'] == teams[i]]['A_xG'] = calculate_average_xg(results, teams[i], y+1)
-
-    print(results[results['teamB'] == "Arsenal"])
+    print(results[(results['teamA'] == "Arsenal") | (results['teamB'] == 'Liverpool')])
 
 
 # Calculate averages for given metric of given games
-def calculate_average(data, team, round, metric):
+def calculate_average_xg(data, team, round, metric):
     home_games = data[data['teamA'] == team][0:round - 1]
     away_games = data[data['teamB'] == team][0:round - 1]
     return (home_games['A_' + metric].mean() + away_games['B_' + metric].mean()) / 2
+
+
+def calculate_average_totals(row):
+    if row['round'] != 1:
+        row['A_tot_points'] = row['A_tot_points'] / (row['round'] - 1)
+        row['A_tot_goal'] = row['A_tot_goal'] / (row['round'] - 1)
+        row['A_tot_con'] = row['A_tot_con'] / (row['round'] - 1)
+        row['B_tot_points'] = row['B_tot_points'] / (row['round'] - 1)
+        row['B_tot_goal'] = row['B_tot_goal'] / (row['round'] - 1)
+        row['B_tot_con'] = row['B_tot_con'] / (row['round'] - 1)
+    return row
 
 
 convert_data()
