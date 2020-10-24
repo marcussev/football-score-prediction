@@ -10,7 +10,7 @@ from itertools import islice
 
 def convert_data():
     # Load raw data
-    raw_data = pd.read_csv("./datasets/epl2020.csv").rename(
+    raw_data = pd.read_csv("./datasets/raw/epl2020.csv").rename(
         index=int, columns={"Unnamed: 0": "match_id", "missed": "conceded"})
 
     # Sort entries by date and home/away team
@@ -107,7 +107,11 @@ def convert_data():
         results.loc[i, 'A_xGA'] = calculate_average_xg(results, row['teamA'], row['round'], 'xGA')
         results.loc[i, 'B_xGA'] = calculate_average_xg(results, row['teamB'], row['round'], 'xGA')
 
-    print(results[(results['teamA'] == "Arsenal") | (results['teamB'] == 'Liverpool')])
+    print(results[(results['teamA'] == "Liverpool") | (results['teamB'] == 'Liverpool')])
+
+
+def save_as_csv(data, filename):
+    data.to_csv()
 
 
 # Calculate averages for given metric of given games
