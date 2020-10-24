@@ -1,5 +1,8 @@
 import pandas as pd
-from itertools import islice
+import sys
+
+sys.path.append("..")
+from utils import save_as_csv
 
 '''
 * This file can be ran to convert the raw data from epl2020.csv to a suitable format for this project
@@ -107,11 +110,7 @@ def convert_data():
         results.loc[i, 'A_xGA'] = calculate_average_xg(results, row['teamA'], row['round'], 'xGA')
         results.loc[i, 'B_xGA'] = calculate_average_xg(results, row['teamB'], row['round'], 'xGA')
 
-    print(results[(results['teamA'] == "Liverpool") | (results['teamB'] == 'Liverpool')])
-
-
-def save_as_csv(data, filename):
-    data.to_csv()
+    return results
 
 
 # Calculate averages for given metric of given games
@@ -132,4 +131,5 @@ def calculate_average_totals(row):
     return row
 
 
-convert_data()
+game_stats = convert_data()
+save_as_csv(game_stats, 'processed/game_stats.csv')

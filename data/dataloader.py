@@ -9,8 +9,8 @@ class Dataloader:
 
     # Constructor loads the datasets and splits into training and test data
     def __init__(self, data_url):
-        self.data = np.array_split(pd.read_csv("./datasets/epl2020.csv"), 2)
-        self.training_set =
+        self.data = np.array_split(pd.read_csv("../datasets/epl2020.csv"), 2)
+        self.training_set
         self.test_set = self.data[1]
 
     # returns the x-values for the training data
