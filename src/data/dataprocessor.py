@@ -10,7 +10,7 @@ from itertools import islice
 
 def convert_data():
     # Load raw data
-    raw_data = pd.read_csv("./datasets/raw/epl2020.csv").rename(
+    raw_data = pd.read_csv("datasets/raw/epl2020.csv").rename(
         index=int, columns={"Unnamed: 0": "match_id", "missed": "conceded"})
 
     # Sort entries by date and home/away team
