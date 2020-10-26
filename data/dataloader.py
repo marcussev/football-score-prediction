@@ -5,6 +5,8 @@ import torch
 '''
 This class is used to handle the raw datasets that are being used in this project
 '''
+
+
 class Dataloader:
 
     # Constructor loads the datasets and splits into training and test data
@@ -25,7 +27,6 @@ class Dataloader:
     def get_y_train(self):
         y_train = torch.tensor(np.vstack((self.training_set["scored"], self.training_set["missed"])).T)
         return y_train
-
 
 
 if __name__ == '__main__':
