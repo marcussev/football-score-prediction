@@ -10,20 +10,28 @@ This class is used to handle the processed team stats dataset. Inherits from pyt
 
 class TeamStats(Dataset):
 
-    def __init__(self, filename, transform, target):
+    def __init__(self, filename):
         self.data = pd.read_csv("./datasets/processed/" + filename)
-        self.transform = transform
+        self.teams = self.data[["teamA", "teamB"]]
+        self.data = self.data.drop(["teamA", "teamB"], axis=1)
+
+        self.game_stats = torch.tensor(self.data.iloc[:, 3:].values)
+        self.results = torch.tensor(self.data.iloc[:, 1:3].values)
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, index):
-        game_stats = self.data.drop(["A_scored", "B_scored"], axis=1).iloc[index, 1:]
-        result = self.data[["A_scored", "B_scored"]].iloc[index]
-        return game_stats, result
+        x_data = self.game_stats[index]
+        y_data = self.results[index]
+        return x_data, y_data
+
+    def get_teams_by_index(self, index):
+        return self.teams.iloc[index]
 
 
 if __name__ == '__main__':
-    dataset = TeamStats("game_stats.csv", None, None)
-    print(len(dataset))
-    print(dataset.__getitem__(80))
+    dataset = TeamStats("games_train_data.csv")
+    print(dataset)
+    print(dataset.__getitem__(90))
+    print(dataset.get_teams_by_index(90))

@@ -11,7 +11,7 @@ from utils import save_as_csv
 '''
 
 
-def convert_data():
+def process_raw_data():
     # Load raw data
     raw_data = pd.read_csv("datasets/raw/epl2020.csv").rename(
         index=int, columns={"Unnamed: 0": "match_id", "missed": "conceded"})
@@ -131,5 +131,20 @@ def calculate_average_totals(row):
     return row
 
 
-game_stats = convert_data()
-save_as_csv(game_stats, 'processed/game_stats.csv')
+def process_interim_data(data):
+    return data.drop(["round"], axis=1)
+
+
+def get_processed_data(data):
+    x = data[data["round"] > 2]
+    divider = int((len(x)/100)*75)
+    train = x[:divider]
+    test = x[divider:]
+    return process_interim_data(train), process_interim_data(test)
+
+
+game_stats = process_raw_data()
+train_data, test_data = get_processed_data(game_stats)
+#save_as_csv(game_stats, 'interim/game_stats.csv')
+save_as_csv(train_data, 'processed/games_train_data.csv')
+save_as_csv(test_data, 'processed/games_test_data.csv')
