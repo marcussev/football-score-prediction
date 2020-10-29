@@ -1,1 +1,1 @@
-# football-score-prediction
+# football-self-prediction

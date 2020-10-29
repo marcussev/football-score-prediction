@@ -11,11 +11,11 @@ This class is used to handle the processed team stats dataset. Inherits from pyt
 class TeamStats(Dataset):
 
     def __init__(self, filename):
-        self.data = pd.read_csv("./datasets/processed/" + filename)
+        self.data = pd.read_csv("data/datasets/processed/" + filename)
         self.teams = self.data[["teamA", "teamB"]]
         self.data = self.data.drop(["teamA", "teamB"], axis=1)
 
-        self.game_stats = torch.tensor(self.data.iloc[:, 3:].values)
+        self.game_stats = torch.tensor(self.data.iloc[:, 3:].values, dtype=torch.float)
         self.results = torch.tensor(self.data.iloc[:, 1:3].values)
 
     def __len__(self):
@@ -33,5 +33,5 @@ class TeamStats(Dataset):
 if __name__ == '__main__':
     dataset = TeamStats("games_train_data.csv")
     print(dataset)
-    print(dataset.__getitem__(90))
+    print(len(dataset.__getitem__(90)[0]))
     print(dataset.get_teams_by_index(90))
