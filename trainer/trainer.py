@@ -3,6 +3,7 @@ import math
 from torch.utils.data import dataloader
 import copy
 import torch
+import visualizer
 
 """
 * Trainer is a class that can be used to train different models given different model and training variables
@@ -25,9 +26,10 @@ class Trainer:
         self.training_data = dataloader.DataLoader(training_set)
         self.testing_data = dataloader.DataLoader(testing_set)
 
-        # Containers for visualizing loss
+        # Containers for visualizing
         self.train_loss = []
         self.val_loss = []
+        self.val_accuracy = []
 
         # Best model during training
         self.best_model = copy.deepcopy(self.model)
@@ -37,11 +39,12 @@ class Trainer:
     def train(self):
         for i in range(self.epochs):
             correct_predictions = 0  # counter for correct predictions
+            epoch_loss = []
             for train_batch in self.training_data:
                 x, y = train_batch
                 output = self.model(x)
                 loss = self.loss(output.float(), y.float())
-                self.train_loss.append(loss)
+                epoch_loss.append(loss)
 
                 # Remember model state if it is the current best
                 if loss.item() < self.best_loss:
@@ -59,32 +62,37 @@ class Trainer:
                 self.optimizer.step()
                 self.optimizer.zero_grad()
 
+            self.train_loss.append(sum(epoch_loss)/len(epoch_loss))
+
             # Calculate and print accuracy on training data
             print("Epoch %s:\nTraining accuracy: %s%s" % (
                 i, self.accuracy(correct_predictions, len(self.training_set)), "%"))
 
             # Run model on test data to validate performance
             test_accuracy = self.validate()
+            self.val_accuracy.append(test_accuracy)
             print("Testing accuracy: ", test_accuracy, "%\n")
 
     def validate(self):
         with torch.no_grad():
             correct_predictions = 0
+            epoch_loss = []
             for test_batch in self.testing_data:
                 x, y = test_batch
                 output = self.model(x)
-                self.val_loss.append(self.loss(output, y))
+                epoch_loss.append(self.loss(output, y))
                 pred_result = self.get_result(output)
                 val_result = self.get_result(y)
                 if pred_result == val_result:
                     correct_predictions += 1
+            self.val_loss.append(sum(epoch_loss)/len(epoch_loss))
             return self.accuracy(correct_predictions, len(self.testing_set))
 
     def visualize_accuracy(self):
-        raise NotImplementedError
+        visualizer.plot_accuracy(self.epochs, self.val_accuracy)
 
     def visualize_loss(self):
-        raise NotImplementedError
+        visualizer.plot_loss(self.epochs, self.val_loss)
 
     @staticmethod
     def accuracy(correct_predictions, predictions):
