@@ -1,4 +1,5 @@
 import math
+from abc import abstractmethod
 
 from torch.utils.data import dataloader
 import copy
@@ -93,8 +94,7 @@ class Trainer:
                     correct = "V"
                 teams = self.testing_set.get_teams_by_index(game_index)
                 game_index += 1
-                epoch_results.append([teams[0], teams[1], "%s-%s" % (int(output[0][0]), int(output[0][1])),
-                                      "%s-%s" % (int(y[0][0]), int(y[0][1])), correct])
+                epoch_results.append(self.get_epoch_results(teams, output, y, correct))
 
             # add epoch loss
             self.val_loss.append(sum(epoch_loss) / len(epoch_loss))
@@ -112,23 +112,22 @@ class Trainer:
     def visualize_loss(self):
         visualizer.plot_loss(self.epochs, self.val_loss)
 
+    @abstractmethod
     def print_best_results(self):
-        df = pd.DataFrame(self.best_results, columns=["teamA", "teamB", "predictedScore", "actualScore", "correct"])
-        print(df)
+        raise NotImplementedError
+
+    # determines the match result based on scores, returns 0 for draw, -1 for teamB win and +1 for teamA win
+    @abstractmethod
+    def get_result(self, score):
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_epoch_results(self, teams, predicted, actual, correct):
+        raise NotImplementedError
 
     @staticmethod
     def accuracy(correct_predictions, predictions):
         acc = (correct_predictions / predictions) * 100
         return round(acc, 2)
 
-    # determines the match result based on scores, returns 0 for draw, -1 for teamB win and +1 for teamA win
-    @staticmethod
-    def get_result(score):
-        team_a_score = int(score[0][0])
-        team_b_score = int(score[0][1])
-        if team_a_score > team_b_score:
-            return 1
-        elif team_a_score == team_b_score:
-            return 0
-        else:
-            return -1
+
