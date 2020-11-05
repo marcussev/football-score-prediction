@@ -4,6 +4,7 @@ from torch.utils.data import dataloader
 import copy
 import torch
 import visualizer
+import pandas as pd
 
 """
 * Trainer is a class that can be used to train different models given different model and training variables
@@ -35,6 +36,7 @@ class Trainer:
         self.best_model = copy.deepcopy(self.model)
         self.best_loss = float("inf")
         self.best_accuracy = 0.0  # 100.0 = 100%, 0.0 = 0%
+        self.best_results = []  # list containing all results from best prediction
 
     def train(self):
         for i in range(self.epochs):
@@ -62,7 +64,7 @@ class Trainer:
                 self.optimizer.step()
                 self.optimizer.zero_grad()
 
-            self.train_loss.append(sum(epoch_loss)/len(epoch_loss))
+            self.train_loss.append(sum(epoch_loss) / len(epoch_loss))
 
             # Calculate and print accuracy on training data
             print("Epoch %s:\nTraining accuracy: %s%s" % (
@@ -75,9 +77,12 @@ class Trainer:
 
     def validate(self):
         with torch.no_grad():
-            correct_predictions = 0
-            epoch_loss = []
+            correct_predictions = 0  # how many games was the right winner predicted
+            epoch_loss = []  # loss for current epoch
+            game_index = 0
+            epoch_results = []  # list of game results from current epoch
             for test_batch in self.testing_data:
+                correct = "X"
                 x, y = test_batch
                 output = self.model(x)
                 epoch_loss.append(self.loss(output, y))
@@ -85,14 +90,31 @@ class Trainer:
                 val_result = self.get_result(y)
                 if pred_result == val_result:
                     correct_predictions += 1
-            self.val_loss.append(sum(epoch_loss)/len(epoch_loss))
-            return self.accuracy(correct_predictions, len(self.testing_set))
+                    correct = "V"
+                teams = self.testing_set.get_teams_by_index(game_index)
+                game_index += 1
+                epoch_results.append([teams[0], teams[1], "%s-%s" % (int(output[0][0]), int(output[0][1])),
+                                      "%s-%s" % (int(y[0][0]), int(y[0][1])), correct])
+
+            # add epoch loss
+            self.val_loss.append(sum(epoch_loss) / len(epoch_loss))
+
+            # check if this is the current most accurate prediction
+            epoch_accuracy = self.accuracy(correct_predictions, len(self.testing_set))
+            if epoch_accuracy > self.best_accuracy:
+                self.best_results = epoch_results
+                self.best_accuracy = epoch_accuracy
+            return epoch_accuracy
 
     def visualize_accuracy(self):
         visualizer.plot_accuracy(self.epochs, self.val_accuracy)
 
     def visualize_loss(self):
         visualizer.plot_loss(self.epochs, self.val_loss)
+
+    def print_best_results(self):
+        df = pd.DataFrame(self.best_results, columns=["teamA", "teamB", "predictedScore", "actualScore", "correct"])
+        print(df)
 
     @staticmethod
     def accuracy(correct_predictions, predictions):
@@ -110,4 +132,3 @@ class Trainer:
             return 0
         else:
             return -1
-

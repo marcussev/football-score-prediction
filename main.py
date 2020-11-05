@@ -17,5 +17,6 @@ if __name__ == '__main__':
     trainer.train()
     trainer.visualize_loss()
     trainer.visualize_accuracy()
+    trainer.print_best_results()
 
 
