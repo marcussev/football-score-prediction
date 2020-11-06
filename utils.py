@@ -11,6 +11,10 @@ def save_as_csv(data, path):
     data.to_csv(BASE_PATH + path)
 
 
+def save_as_excel(data, path):
+    data.to_excel(BASE_PATH + path)
+
+
 # color cell of a dataframe based on result
 def color_cell(val):
     color = "green" if val == "V" else "red"
