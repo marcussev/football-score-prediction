@@ -46,7 +46,7 @@ class Trainer:
             for train_batch in self.training_data:
                 x, y = train_batch
                 output = self.model(x)
-                loss = self.loss(output.float(), y.float())
+                loss = self.calculate_loss(output, y)
                 epoch_loss.append(loss)
 
                 # Remember model state if it is the current best
@@ -86,7 +86,7 @@ class Trainer:
                 correct = "X"
                 x, y = test_batch
                 output = self.model(x)
-                epoch_loss.append(self.loss(output, y))
+                epoch_loss.append(self.calculate_loss(output, y))
                 pred_result = self.get_result(output)
                 val_result = self.get_result(y)
                 if pred_result == val_result:
@@ -111,6 +111,10 @@ class Trainer:
 
     def visualize_loss(self):
         visualizer.plot_loss(self.epochs, self.val_loss)
+
+    @abstractmethod
+    def calculate_loss(self, output, y):
+        raise NotImplementedError
 
     @abstractmethod
     def print_best_results(self):

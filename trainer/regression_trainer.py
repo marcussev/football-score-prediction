@@ -1,4 +1,5 @@
 import pandas as pd
+import utils
 
 from trainer.trainer import Trainer
 
@@ -7,8 +8,13 @@ class RegressionTrainer(Trainer):
     def __init__(self, model, training_set, testing_set, epochs, optimizer, loss):
         super().__init__(model, training_set, testing_set, epochs, optimizer, loss)
 
+    def calculate_loss(self, output, y):
+        return self.loss(output.float(), y.float())
+
     def print_best_results(self):
         df = pd.DataFrame(self.best_results, columns=["teamA", "teamB", "predictedScore", "actualScore", "correct"])
+        df.style.apply(utils.color_cell)
+        utils.save_as_csv(df, "results/regression_results.csv")
         print(df)
 
     def get_result(self, score):

@@ -8,9 +8,9 @@ MODEL = MLPNet(10, 6, 3)
 TRAINING_SET = StatsDatasetClassification("games_train_data.csv")
 TESTING_SET = StatsDatasetClassification("games_test_data.csv")
 EPOCHS = 400
-LEARNING_RATE = 0.07
+LEARNING_RATE = 0.005
 OPTIMIZER = torch.optim.SGD(MODEL.parameters(), lr=LEARNING_RATE)
-LOSS = torch.nn.MSELoss()
+LOSS = torch.nn.CrossEntropyLoss()
 
 if __name__ == '__main__':
     trainer = ClassificationTrainer(MODEL, TRAINING_SET, TESTING_SET, EPOCHS, OPTIMIZER, LOSS)

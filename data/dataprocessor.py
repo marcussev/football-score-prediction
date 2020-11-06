@@ -145,6 +145,6 @@ def get_processed_data(data):
 
 game_stats = process_raw_data()
 train_data, test_data = get_processed_data(game_stats)
-#save_as_csv(game_stats, 'interim/game_stats.csv')
-save_as_csv(train_data, 'processed/games_train_data.csv')
-save_as_csv(test_data, 'processed/games_test_data.csv')
+#save_as_csv(game_stats, 'data/datasets/interim/game_stats.csv')
+save_as_csv(train_data, 'data/datasets/processed/games_train_data.csv')
+save_as_csv(test_data, 'data/datasets/processed/games_test_data.csv')

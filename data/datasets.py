@@ -13,7 +13,7 @@ This class is used to handle the processed team stats dataset. Inherits from pyt
 class StatsDataset(Dataset):
 
     def __init__(self, filename):
-        self.data = pd.read_csv("data/datasets/processed/" + filename)
+        self.data = pd.read_csv("../data/datasets/processed/" + filename)
         self.teams = self.data[["teamA", "teamB"]]
         self.data = self.data.drop(["teamA", "teamB"], axis=1)
         self.game_stats = torch.tensor(self.data.iloc[:, 3:].values, dtype=torch.float)

@@ -1,0 +1,68 @@
+,teamA,teamB,predictedScore,actualScore,correct
+0,Aston Villa,Brighton,0-1,1-1,X
+1,Crystal Palace,Man City,0-1,2-2,X
+2,Bournemouth,Norwich,1-1,0-1,X
+3,Sheffield United,Arsenal,1-1,1-1,V
+4,Wolves,Southampton,1-0,3-2,V
+5,Chelsea,Newcastle United,2-0,0-1,X
+6,Leicester,Burnley,1-0,1-2,X
+7,Man Utd,Liverpool,1-1,0-2,X
+8,Brighton,Bournemouth,1-1,1-3,X
+9,Newcastle United,Everton,0-1,2-2,X
+10,Man City,Sheffield United,2-0,1-0,V
+11,Southampton,Crystal Palace,1-0,2-0,V
+12,Watford,Aston Villa,1-1,1-2,X
+13,Arsenal,Chelsea,0-1,2-2,X
+14,West Ham,Leicester,0-1,1-4,V
+15,Norwich,Tottenham,0-1,1-2,V
+16,Burnley,Man Utd,1-1,2-0,X
+17,Liverpool,Wolves,1-0,2-1,V
+18,Liverpool,West Ham,2-0,2-0,V
+19,Chelsea,Leicester,1-1,2-2,V
+20,Southampton,Liverpool,0-1,0-4,V
+21,Brighton,West Ham,1-1,3-3,V
+22,Aston Villa,Bournemouth,0-1,1-2,V
+23,Sheffield United,Crystal Palace,1-0,1-0,V
+24,Norwich,Newcastle United,0-0,0-0,V
+25,Everton,Watford,1-0,3-2,V
+26,Wolves,Man Utd,1-1,0-0,V
+27,Arsenal,Burnley,1-1,0-0,V
+28,Man City,Tottenham,2-0,0-2,X
+29,Crystal Palace,Everton,0-1,1-3,V
+30,Watford,Brighton,1-1,1-1,V
+31,Bournemouth,Sheffield United,0-1,1-2,V
+32,Leicester,Wolves,1-1,0-0,V
+33,Burnley,Southampton,1-0,2-1,V
+34,Liverpool,Norwich,2-0,1-0,V
+35,Tottenham,Aston Villa,1-0,3-2,V
+36,Newcastle United,Arsenal,0-1,0-4,V
+37,Man Utd,Chelsea,1-1,2-0,X
+38,West Ham,Man City,0-2,0-2,V
+39,Tottenham,Chelsea,0-1,1-2,V
+40,Brighton,Sheffield United,1-1,1-1,V
+41,Bournemouth,Burnley,0-1,0-3,V
+42,Aston Villa,Southampton,0-1,0-2,V
+43,Newcastle United,Crystal Palace,0-0,0-1,X
+44,Man City,Leicester,2-1,1-0,V
+45,Norwich,Wolves,0-1,0-3,V
+46,Watford,Man Utd,0-1,0-3,V
+47,Everton,Arsenal,1-0,2-3,X
+48,West Ham,Liverpool,0-1,2-3,V
+49,Leicester,Norwich,1-0,0-1,X
+50,Crystal Palace,Brighton,1-1,1-0,X
+51,Burnley,Newcastle United,1-0,0-0,X
+52,Southampton,West Ham,1-1,1-3,X
+53,Chelsea,Bournemouth,2-0,2-2,X
+54,Liverpool,Watford,2-0,0-3,X
+55,Man Utd,Everton,1-0,1-1,X
+56,Wolves,Tottenham,1-0,3-2,V
+57,Bournemouth,Liverpool,0-1,1-2,V
+58,Newcastle United,Southampton,0-1,1-0,X
+59,Norwich,Sheffield United,0-1,0-1,V
+60,Brighton,Wolves,0-1,0-0,X
+61,West Ham,Arsenal,1-1,0-1,X
+62,Watford,Crystal Palace,1-1,0-1,X
+63,Tottenham,Burnley,1-1,1-1,V
+64,Everton,Chelsea,1-1,0-4,X
+65,Man City,Man Utd,2-1,0-2,X
+66,Aston Villa,Leicester,0-1,0-4,V
