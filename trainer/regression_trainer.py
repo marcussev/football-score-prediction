@@ -13,7 +13,7 @@ class RegressionTrainer(Trainer):
 
     def print_best_results(self):
         df = pd.DataFrame(self.best_results, columns=["teamA", "teamB", "predictedScore", "actualScore", "correct"])
-        df.style.apply(utils.color_cell)
+        df.style.apply(utils.color_cell, subset=["correct"])
         utils.save_as_csv(df, "results/regression_results.csv")
         print(df)
 
