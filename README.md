@@ -19,8 +19,16 @@ If this does not work try installing each package individually.
 
 ## Get started
 To reproduce the analysis and research results, do the following steps:
-1. Run dataprocessor.py - downloads and processes the data to be used:
+1. Run dataprocessor.py to download and process the data to be used:
 ```bash
 cd data
 python3 dataprocessor.py
 ```
+2. Run test files in ./test to train and evauluate models:
+```bash
+cd test
+python3 enter_file_name_here.py
+```
+3. Tranied models are saved to ./results/trained_models
+4. Graphs displaying accuracy and loss are saved to ./results/graphs
+5. Full match predictions is also saved to ./results
