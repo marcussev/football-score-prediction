@@ -33,9 +33,9 @@ python3 enter_file_name_here.py
 4. Graphs displaying accuracy and loss are saved to ./results/graphs
 5. Full match predictions is also saved to ./results
 
-## Predcit future results
+## Predict future results
 In this project the linear regression model achieved the best results gived the data and features at hand. To predict any football game using this model, you can run the ./main:
 ```bash
 python3 main.py
 ```
-You will be prompted to enter each revelant game statistic and the program will the give you its prediction
+You will be prompted to enter each revelant game statistic and the program will the give you its prediction. 
