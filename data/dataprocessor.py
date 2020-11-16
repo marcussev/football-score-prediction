@@ -27,6 +27,10 @@ def process_raw_data():
     raw_data["tot_points"] = raw_data["tot_points"].apply(lambda x: str(x))
     raw_data["tot_goal"] = raw_data["tot_goal"].apply(lambda x: str(x))
     raw_data["tot_con"] = raw_data["tot_con"].apply(lambda x: str(x))
+    raw_data["deep"] = raw_data["deep"].apply(lambda x: str(x))
+    raw_data["deep_allowed"] = raw_data["deep_allowed"].apply(lambda x: str(x))
+    raw_data["ppda_cal"] = raw_data["ppda_cal"].apply(lambda x: str(x))
+    raw_data["ppda_allowed"] = raw_data["ppda_allowed"].apply(lambda x: str(x))
     results = raw_data.groupby(by=['Referee.x', 'date']).agg({'teamId': ','.join,
                                                               'scored': ','.join,
                                                               'xG': ','.join,
@@ -34,9 +38,12 @@ def process_raw_data():
                                                               'tot_points': ",".join,
                                                               'tot_goal': ",".join,
                                                               'tot_con': ",".join,
+                                                              'deep': ",".join,
+                                                              'deep_allowed': ",".join,
+                                                              'ppda_cal': ",".join,
+                                                              'ppda_allowed': ",".join,
                                                               'round': 'max'
                                                               }).reset_index()
-    # print(results)
 
     # Combine rows so that each game has only one row
     results['teamA'] = results['teamId'].apply(lambda x: x.split(',')[0])
@@ -53,6 +60,14 @@ def process_raw_data():
     results['B_tot_goal'] = results['tot_goal'].apply(lambda x: x.split(',')[1]).astype('uint16')
     results['A_tot_con'] = results['tot_con'].apply(lambda x: x.split(',')[0]).astype('uint16')
     results['B_tot_con'] = results['tot_con'].apply(lambda x: x.split(',')[1]).astype('uint16')
+    results['A_deep'] = results['deep'].apply(lambda x: x.split(',')[0]).astype('uint16')
+    results['B_deep'] = results['deep'].apply(lambda x: x.split(',')[1]).astype('uint16')
+    results['A_deep_allowed'] = results['deep_allowed'].apply(lambda x: x.split(',')[0]).astype('uint16')
+    results['B_deep_allowed'] = results['deep_allowed'].apply(lambda x: x.split(',')[1]).astype('uint16')
+    results['A_ppda'] = results['ppda_cal'].apply(lambda x: x.split(',')[0]).astype('uint16')
+    results['B_ppda'] = results['ppda_cal'].apply(lambda x: x.split(',')[1]).astype('uint16')
+    results['A_ppda_allowed'] = results['ppda_allowed'].apply(lambda x: x.split(',')[0]).astype('uint16')
+    results['B_ppda_allowed'] = results['ppda_allowed'].apply(lambda x: x.split(',')[1]).astype('uint16')
 
     results.sort_values(by='date', inplace=True)
     results.reset_index(inplace=True, drop=True)
@@ -60,7 +75,8 @@ def process_raw_data():
     # Remove all other columns
     results = results[['round', 'teamA', 'teamB', 'A_scored', 'B_scored', 'A_xG', 'B_xG', 'A_xGA',
                        'B_xGA', 'A_tot_points', 'B_tot_points', 'A_tot_goal', 'B_tot_goal',
-                       'A_tot_con', 'B_tot_con']]
+                       'A_tot_con', 'B_tot_con', 'A_deep', 'B_deep', 'A_deep_allowed', 'B_deep_allowed',
+                       'A_ppda', 'B_ppda', 'A_ppda_allowed', 'B_ppda_allowed']]
 
     # Totals needs to be from previous games, not including current game
     # Therefore set all totals from first round to 0, and shift stats backwards 1 round
@@ -100,21 +116,28 @@ def process_raw_data():
 
     # Convert totals to averages
     results = results.apply(lambda x: calculate_average_totals(x), axis=1)
-    results.rename(index=int, columns={"A_tot_points": 'A_ppg', 'B_tot_points': 'B_ppg', 'A_tot_goal': 'A_gpg',
-                                       'B_tot_goal': 'B_gpg', 'A_tot_con': 'A_cpg', 'B_tot_con': 'B_cpg'})
+    results = results.rename(index=int,
+                             columns={"A_tot_points": 'A_ppg', 'B_tot_points': 'B_ppg', 'A_tot_goal': 'A_gpg',
+                                      'B_tot_goal': 'B_gpg', 'A_tot_con': 'A_cpg', 'B_tot_con': 'B_cpg'})
 
     # Update rows so that it has average values from previous games
     for i, row in results.iterrows():
-        results.loc[i, 'A_xG'] = calculate_average_xg(results, row['teamA'], row['round'], 'xG')
-        results.loc[i, 'B_xG'] = calculate_average_xg(results, row['teamB'], row['round'], 'xG')
-        results.loc[i, 'A_xGA'] = calculate_average_xg(results, row['teamA'], row['round'], 'xGA')
-        results.loc[i, 'B_xGA'] = calculate_average_xg(results, row['teamB'], row['round'], 'xGA')
+        results.loc[i, 'A_xG'] = calculate_average(results, row['teamA'], row['round'], 'xG')
+        results.loc[i, 'B_xG'] = calculate_average(results, row['teamB'], row['round'], 'xG')
+        results.loc[i, 'A_xGA'] = calculate_average(results, row['teamA'], row['round'], 'xGA')
+        results.loc[i, 'B_xGA'] = calculate_average(results, row['teamB'], row['round'], 'xGA')
+        results.loc[i, 'A_deep'] = calculate_average(results, row['teamA'], row['round'], 'deep')
+        results.loc[i, 'B_deep'] = calculate_average(results, row['teamB'], row['round'], 'deep')
+        results.loc[i, 'A_deep_allowed'] = calculate_average(results, row['teamA'], row['round'], 'deep_allowed')
+        results.loc[i, 'B_deep_allowed'] = calculate_average(results, row['teamB'], row['round'], 'deep_allowed')
+        results.loc[i, 'A_ppda'] = calculate_average(results, row['teamA'], row['round'], 'ppda')
+        results.loc[i, 'B_ppda'] = calculate_average(results, row['teamB'], row['round'], 'ppda')
 
     return results
 
 
 # Calculate averages for given metric of given games
-def calculate_average_xg(data, team, round, metric):
+def calculate_average(data, team, round, metric):
     home_games = data[data['teamA'] == team][0:round - 1]
     away_games = data[data['teamB'] == team][0:round - 1]
     return (home_games['A_' + metric].mean() + away_games['B_' + metric].mean()) / 2
@@ -137,14 +160,15 @@ def process_interim_data(data):
 
 def get_processed_data(data):
     x = data[data["round"] > 2]
-    divider = int((len(x)/100)*75)
+    divider = int((len(x) / 100) * 75)
     train = x[:divider]
     test = x[divider:]
-    return process_interim_data(train), process_interim_data(test)
+    return process_interim_data(train), process_interim_data(test), process_interim_data(x)
 
 
 game_stats = process_raw_data()
-train_data, test_data = get_processed_data(game_stats)
-#save_as_csv(game_stats, 'data/datasets/interim/game_stats.csv')
-save_as_csv(train_data, 'data/datasets/processed/games_train_data.csv')
-save_as_csv(test_data, 'data/datasets/processed/games_test_data.csv')
+train_data, test_data, full_data = get_processed_data(game_stats)
+# save_as_csv(game_stats, 'data/datasets/interim/game_stats.csv')
+# save_as_csv(train_data, 'data/datasets/processed/games_train_data.csv')
+# save_as_csv(test_data, 'data/datasets/processed/games_test_data.csv')
+save_as_csv(full_data, 'data/datasets/processed/games_full_data.csv')

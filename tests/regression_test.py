@@ -7,8 +7,8 @@ import torch
 MODEL = LinearRegression(10, 2)
 TRAINING_SET = StatsDatasetRegression("games_train_data.csv")
 TESTING_SET = StatsDatasetRegression("games_test_data.csv")
-EPOCHS = 200
-LEARNING_RATE = 0.0085
+EPOCHS = 500
+LEARNING_RATE = 0.002
 OPTIMIZER = torch.optim.SGD(MODEL.parameters(), lr=LEARNING_RATE)
 LOSS = torch.nn.MSELoss()
 

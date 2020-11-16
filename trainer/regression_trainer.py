@@ -18,8 +18,8 @@ class RegressionTrainer(Trainer):
         print(df)
 
     def get_result(self, score):
-        team_a_score = int(score[0][0])
-        team_b_score = int(score[0][1])
+        team_a_score = round(score[0][0].item())
+        team_b_score = round(score[0][1].item())
         if team_a_score > team_b_score:
             return 1
         elif team_a_score == team_b_score:
@@ -28,5 +28,5 @@ class RegressionTrainer(Trainer):
             return -1
 
     def get_epoch_results(self, teams, predicted, actual, correct):
-        return [teams[0], teams[1], "%s-%s" % (int(predicted[0][0]), int(predicted[0][1])),
-                "%s-%s" % (int(actual[0][0]), int(actual[0][1])), correct]
+        return [teams[0], teams[1], "%s-%s" % (round(predicted[0][0].item()), round(predicted[0][1].item())),
+                "%s-%s" % (round(actual[0][0].item()), round(actual[0][1].item())), correct]
