@@ -4,16 +4,15 @@ import sys
 sys.path.append("..")
 from utils import save_as_csv
 
-'''
-* This file can be ran to convert the raw data from epl2020.csv to a suitable format for this project
-* It saves a new file called data.csv to the dataset-folder(data/datasets/data.csv)
-* By creating a new separate file we avoid having to run the conversion every time we run the project
-'''
 
+# -------------------------------------------------
+# This file consists of methods for processing data
+# -------------------------------------------------
 
+# This method loads the raw dataset and processes it to an appropriate format
 def process_raw_data():
     # Load raw data
-    raw_data = pd.read_csv("datasets/raw/epl2020.csv").rename(
+    raw_data = pd.read_csv("data/datasets/raw/epl2020.csv").rename(
         index=int, columns={"Unnamed: 0": "match_id", "missed": "conceded"})
 
     # Sort entries by date and home/away team
@@ -30,7 +29,7 @@ def process_raw_data():
     raw_data["deep"] = raw_data["deep"].apply(lambda x: str(x))
     raw_data["deep_allowed"] = raw_data["deep_allowed"].apply(lambda x: str(x))
     raw_data["ppda_cal"] = raw_data["ppda_cal"].apply(lambda x: str(x))
-    raw_data["ppda_allowed"] = raw_data["ppda_allowed"].apply(lambda x: str(x))
+    raw_data["allowed_ppda"] = raw_data["allowed_ppda"].apply(lambda x: str(x))
     results = raw_data.groupby(by=['Referee.x', 'date']).agg({'teamId': ','.join,
                                                               'scored': ','.join,
                                                               'xG': ','.join,
@@ -41,7 +40,7 @@ def process_raw_data():
                                                               'deep': ",".join,
                                                               'deep_allowed': ",".join,
                                                               'ppda_cal': ",".join,
-                                                              'ppda_allowed': ",".join,
+                                                              'allowed_ppda': ",".join,
                                                               'round': 'max'
                                                               }).reset_index()
 
@@ -64,15 +63,15 @@ def process_raw_data():
     results['B_deep'] = results['deep'].apply(lambda x: x.split(',')[1]).astype('uint16')
     results['A_deep_allowed'] = results['deep_allowed'].apply(lambda x: x.split(',')[0]).astype('uint16')
     results['B_deep_allowed'] = results['deep_allowed'].apply(lambda x: x.split(',')[1]).astype('uint16')
-    results['A_ppda'] = results['ppda_cal'].apply(lambda x: x.split(',')[0]).astype('uint16')
-    results['B_ppda'] = results['ppda_cal'].apply(lambda x: x.split(',')[1]).astype('uint16')
-    results['A_ppda_allowed'] = results['ppda_allowed'].apply(lambda x: x.split(',')[0]).astype('uint16')
-    results['B_ppda_allowed'] = results['ppda_allowed'].apply(lambda x: x.split(',')[1]).astype('uint16')
+    results['A_ppda'] = results['ppda_cal'].apply(lambda x: x.split(',')[0]).astype(float).astype('uint16')
+    results['B_ppda'] = results['ppda_cal'].apply(lambda x: x.split(',')[1]).astype(float).astype('uint16')
+    results['A_ppda_allowed'] = results['allowed_ppda'].apply(lambda x: x.split(',')[0]).astype(float).astype('uint16')
+    results['B_ppda_allowed'] = results['allowed_ppda'].apply(lambda x: x.split(',')[1]).astype(float).astype('uint16')
 
     results.sort_values(by='date', inplace=True)
     results.reset_index(inplace=True, drop=True)
 
-    # Remove all other columns
+    # Use only the columns that are interesting
     results = results[['round', 'teamA', 'teamB', 'A_scored', 'B_scored', 'A_xG', 'B_xG', 'A_xGA',
                        'B_xGA', 'A_tot_points', 'B_tot_points', 'A_tot_goal', 'B_tot_goal',
                        'A_tot_con', 'B_tot_con', 'A_deep', 'B_deep', 'A_deep_allowed', 'B_deep_allowed',
@@ -110,6 +109,7 @@ def process_raw_data():
 
     # Update original data
     results = res_copy
+
     # Set first round game stats to 0
     results.loc[results['round'] == 1, ['A_tot_points', 'B_tot_points', 'A_tot_goal', 'B_tot_goal', 'A_tot_con',
                                         'B_tot_con']] = 0
@@ -132,17 +132,22 @@ def process_raw_data():
         results.loc[i, 'B_deep_allowed'] = calculate_average(results, row['teamB'], row['round'], 'deep_allowed')
         results.loc[i, 'A_ppda'] = calculate_average(results, row['teamA'], row['round'], 'ppda')
         results.loc[i, 'B_ppda'] = calculate_average(results, row['teamB'], row['round'], 'ppda')
+        results.loc[i, 'A_ppda_allowed'] = calculate_average(results, row['teamA'], row['round'], 'ppda_allowed')
+        results.loc[i, 'B_ppda_allowed'] = calculate_average(results, row['teamB'], row['round'], 'ppda_allowed')
 
     return results
 
 
-# Calculate averages for given metric of given games
+# This method converts metrics related to single games
+# It calculates averages for given metric based on previous games instead
 def calculate_average(data, team, round, metric):
     home_games = data[data['teamA'] == team][0:round - 1]
     away_games = data[data['teamB'] == team][0:round - 1]
     return (home_games['A_' + metric].mean() + away_games['B_' + metric].mean()) / 2
 
 
+# This method is for converting metrics that are accumulating throughout the season
+# It calculates the averages of these metrics from previous games instead
 def calculate_average_totals(row):
     if row['round'] != 1:
         row['A_tot_points'] = row['A_tot_points'] / (row['round'] - 1)
@@ -154,11 +159,14 @@ def calculate_average_totals(row):
     return row
 
 
+# Helper method to remove last unwanted column from interim state
 def process_interim_data(data):
     return data.drop(["round"], axis=1)
 
 
-def get_processed_data(data):
+# Method to create processed datasets with advanced metrics
+# Dataset of interim state as input
+def get_advanced_data(data):
     x = data[data["round"] > 2]
     divider = int((len(x) / 100) * 75)
     train = x[:divider]
@@ -166,9 +174,36 @@ def get_processed_data(data):
     return process_interim_data(train), process_interim_data(test), process_interim_data(x)
 
 
-game_stats = process_raw_data()
-train_data, test_data, full_data = get_processed_data(game_stats)
-# save_as_csv(game_stats, 'data/datasets/interim/game_stats.csv')
-# save_as_csv(train_data, 'data/datasets/processed/games_train_data.csv')
-# save_as_csv(test_data, 'data/datasets/processed/games_test_data.csv')
-save_as_csv(full_data, 'data/datasets/processed/games_full_data.csv')
+# Method to create processed datasets with simple metrics
+# Dataset of interim state as input
+def get_simplified_data(data):
+    x = data[data["round"] > 2]
+    x = x.drop(["A_deep", "B_deep", "A_deep_allowed", "B_deep_allowed", "A_ppda", "B_ppda", "A_ppda_allowed",
+                "B_ppda_allowed"], axis=1)
+    divider = int((len(x) / 100) * 75)
+    train = x[:divider]
+    test = x[divider:]
+    return process_interim_data(train), process_interim_data(test)
+
+
+# Method to create processed datasets for MLP-models with optimal metrics
+# Dataset of interim state as input
+def get_optimal_mlp_data(data):
+    x = data[data["round"] > 2]
+    x = x.drop(["A_ppg", "B_ppg", "A_gpg", "B_gpg", "A_cpg", "B_cpg"], axis=1)
+    divider = int((len(x) / 100) * 75)
+    train = x[:divider]
+    test = x[divider:]
+    return process_interim_data(train), process_interim_data(test)
+
+
+# Method to create processed datasets for regression models with optimal metrics
+# Dataset of interim state as input
+def get_optimal_reg_data(data):
+    x = data[data["round"] > 2]
+    x = x[["teamA", "teamB", "A_scored", "B_scored", "A_xG", "B_xG", "A_xGA", "B_xGA"]]
+    divider = int((len(x) / 100) * 75)
+    train = x[:divider]
+    test = x[divider:]
+    return train, test
+

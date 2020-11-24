@@ -1,7 +1,11 @@
 import pandas as pd
 import utils
-
 from trainer.trainer import Trainer
+
+# -------------------------------------------------------
+# This file contains class for training regression models
+# Inherits from base Trainer class
+# -------------------------------------------------------
 
 
 class RegressionTrainer(Trainer):
@@ -20,10 +24,14 @@ class RegressionTrainer(Trainer):
     def get_result(self, score):
         team_a_score = round(score[0][0].item())
         team_b_score = round(score[0][1].item())
+
+        # team A win
         if team_a_score > team_b_score:
             return 1
+        # team B win
         elif team_a_score == team_b_score:
             return 0
+        # draw
         else:
             return -1
 

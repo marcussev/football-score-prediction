@@ -19,23 +19,16 @@ If this does not work try installing each package individually.
 
 ## Get started
 To reproduce the analysis and research results, do the following steps:
-1. Run dataprocessor.py to download and process the data to be used:
-```bash
-cd data
-python3 dataprocessor.py
-```
-2. Run test files in ./test to train and evauluate models:
-```bash
-cd tests
-python3 enter_file_name_here.py
-```
-3. Tranied models are saved to ./results/trained_models
-4. Graphs displaying accuracy and loss are saved to ./results/graphs
-5. Full match predictions are also saved to ./results
+1. Make sure the raw dataset is downloaded to ./data/datasets/raw/ from https://www.kaggle.com/idoyo92/epl-stats-20192020. 
+Then run main.py to preprocess and do feature analysis of the data:
+    ```bash
+    python3 main.py
+    ```
+2. After all datasets are saved, run test files in ./test to train and evaluate models:
+    ```bash
+    cd tests/folder_name_here
+    python3 file_name_here.py
+    ```
+3. If you want to save graphs from the tests, make sure to uncomment plt.savefig()
+in visualizer.py methods.
 
-## Predict future results
-In this project the linear regression model achieved the best results gived the data and features at hand. To predict any football game using this model, you can run the ./main:
-```bash
-python3 main.py
-```
-You will be prompted to enter each revelant game statistic and the program will the give you its prediction. 

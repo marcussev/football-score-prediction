@@ -1,15 +1,12 @@
-import math
 from abc import abstractmethod
 
 from torch.utils.data import dataloader
 import copy
 import torch
-import visualizer
-import pandas as pd
 
-"""
-* Trainer is a class that can be used to train different models given different model and training variables
-"""
+# -------------------------------------------------------
+# This file contains the parent class for training models
+# -------------------------------------------------------
 
 
 class Trainer:
@@ -39,6 +36,7 @@ class Trainer:
         self.best_accuracy = 0.0  # 100.0 = 100%, 0.0 = 0%
         self.best_results = []  # list containing all results from best prediction
 
+    # Based training algorithm for all models
     def train(self):
         for i in range(self.epochs):
             correct_predictions = 0  # counter for correct predictions
@@ -65,6 +63,7 @@ class Trainer:
                 self.optimizer.step()
                 self.optimizer.zero_grad()
 
+            # Add average training loss for this epoch
             self.train_loss.append(sum(epoch_loss) / len(epoch_loss))
 
             # Calculate and print accuracy on training data
@@ -76,6 +75,7 @@ class Trainer:
             self.val_accuracy.append(test_accuracy)
             print("Testing accuracy: ", test_accuracy, "%\n")
 
+    # Algorithm for validating model on test data
     def validate(self):
         with torch.no_grad():
             correct_predictions = 0  # how many games was the right winner predicted
@@ -83,21 +83,24 @@ class Trainer:
             game_index = 0
             epoch_results = []  # list of game results from current epoch
             for test_batch in self.testing_data:
-                correct = "X"
+                correct = "X"  # For printing
                 x, y = test_batch
                 output = self.model(x)
                 epoch_loss.append(self.calculate_loss(output, y))
                 pred_result = self.get_result(output)
                 val_result = self.get_result(y)
+
+                # Check if correct prediction
                 if pred_result == val_result:
                     correct_predictions += 1
-                    correct = "V"
-                teams = self.testing_set.get_teams_by_index(game_index)
+                    correct = "V"  # For printing
+                teams = self.testing_set.get_teams_by_index(game_index)  # team names for printing results
                 game_index += 1
                 epoch_results.append(self.get_epoch_results(teams, output, y, correct))
 
-            # add epoch loss
-            self.val_loss.append(sum(epoch_loss) / len(epoch_loss))
+            # add average epoch loss
+            avg_loss = sum(epoch_loss) / len(epoch_loss)
+            self.val_loss.append(avg_loss)
 
             # check if this is the current most accurate prediction
             epoch_accuracy = self.accuracy(correct_predictions, len(self.testing_set))
@@ -106,29 +109,27 @@ class Trainer:
                 self.best_accuracy = epoch_accuracy
             return epoch_accuracy
 
-    def visualize_accuracy(self):
-        visualizer.plot_accuracy(self.epochs, self.val_accuracy)
-
-    def visualize_loss(self):
-        visualizer.plot_loss(self.epochs, self.val_loss)
-
+    # ABSTRACT METHODS
     @abstractmethod
     def calculate_loss(self, output, y):
         raise NotImplementedError
 
     @abstractmethod
+    # Method for printing results from best prediction
     def print_best_results(self):
         raise NotImplementedError
 
-    # determines the match result based on scores, returns 0 for draw, -1 for teamB win and +1 for teamA win
     @abstractmethod
+    # Method for determining match outcome based on score
     def get_result(self, score):
         raise NotImplementedError
 
     @abstractmethod
+    # Method returning list of all info regarding a game result
     def get_epoch_results(self, teams, predicted, actual, correct):
         raise NotImplementedError
 
+    # HELPER METHOD
     @staticmethod
     def accuracy(correct_predictions, predictions):
         acc = (correct_predictions / predictions) * 100
