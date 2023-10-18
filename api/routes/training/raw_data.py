@@ -1,8 +1,10 @@
 from flask import Blueprint, request, jsonify
+from bs4 import BeautifulSoup
 import pandas as pd
-import json
-import sys
+import requests
 import os
+import json
+from understat import Understat
 
 import db
 
@@ -40,5 +42,28 @@ def insert_data_from_file():
     
     return 'OK', 200
 
+@raw_blueprint.route('/scrape', methods=['GET', 'POST'])
+def refresh_data():
+    season = request.args.get('season')
+    team = request.args.get('team')
 
+    base_url = 'https://understat.com/team/'
+    url = base_url + team + '/' + season
 
+    print(season)
+    print(team)
+
+    res = requests.get(url)
+    soup = BeautifulSoup(res.content, 'lxml')
+    scripts = soup.find_all('script')
+    strings = scripts[1].string
+    
+    ind_start = strings.index("('")+2 
+    ind_end = strings.index("')") 
+    json_data = strings[ind_start:ind_end] 
+    json_data = json_data.encode('utf8').decode('unicode_escape')
+
+    # All teams matches for the season
+    data = json.loads(json_data)
+
+    return 'OK', 200

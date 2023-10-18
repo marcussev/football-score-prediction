@@ -4,3 +4,6 @@
 
 # Keys
 db-key.json
+
+# Cache
+__pycache__

@@ -1,4 +1,4 @@
-from db import db
+from .db import db
 
 collection = db.collection('raw_data')
 
