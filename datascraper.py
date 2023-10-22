@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+import re
+from datetime import datetime, timedelta
 
 BASE_URL = 'https://understat.com/'
 
@@ -15,11 +17,7 @@ def get_latest_stats(league, season):
     string = scripts[2].string
 
     # parsed data to json
-    ind_start = string.index("('")+2
-    ind_end = string.index("')")
-    json_data = string[ind_start:ind_end]
-    json_data = json_data.encode('utf8').decode('unicode_escape')
-    raw_data = json.loads(json_data)
+    raw_data = parseSoupString(string)
 
     data = {}
     
@@ -67,4 +65,69 @@ def get_latest_stats(league, season):
 
     return data
 
-get_latest_stats('epl', '2023')
+def get_all_gameweeks(league, season):
+    url = BASE_URL + 'league/' + league + '/' + season
+    res = requests.get(url)
+
+    # Scrape for gw data
+    soup = BeautifulSoup(res.content, 'lxml')
+    scripts = soup.find_all('script')
+    string = scripts[1].string
+
+    raw_data = parseSoupString(string)
+
+    raw_data.sort(key=lambda g: datetime.strptime(g.get('datetime'), '%Y-%m-%d %H:%M:%S'))
+
+    gameweeks = {}
+
+
+    current_gw = 1
+    current_gw_start = None
+    current_gw_end = None
+    for game in raw_data:
+        game_data = {
+            'id': game['id'],
+            'isPlayed': game['isResult'],
+            'home': game['h']['title'],
+            'away': game['a']['title'],
+            'datetime': game['datetime'],
+            'title': game['h']['title'] + ' - ' + game['a']['title'],
+            'short_title': game['h']['short_title'] + ' - ' + game['a']['short_title'],
+            'h_scored': game['goals']['h'],
+            'a_scored': game['goals']['a'],
+            'h_xG': game['xG']['h'],
+            'a_xG': game['xG']['a']
+        }
+        
+        hasPlayedThisGw = False
+        game_date = datetime.strptime(game['datetime'], '%Y-%m-%d %H:%M:%S')
+        if current_gw in gameweeks and current_gw_end < game_date:
+            hasPlayedThisGw = True
+        
+        if hasPlayedThisGw and len(gameweeks[current_gw]) >= 10:
+            current_gw += 1
+
+        if current_gw not in gameweeks:
+            gameweeks[current_gw] = {}
+            current_gw_start = datetime.strptime(game['datetime'], '%Y-%m-%d %H:%M:%S')
+            current_gw_end = nextWeekDay(current_gw_start, 2)
+
+        gameweeks[current_gw][game_data['title']] = game_data
+
+    return gameweeks
+
+
+
+def parseSoupString(string):
+    ind_start = string.index("('")+2
+    ind_end = string.index("')")
+    json_data = string[ind_start:ind_end]
+    json_data = json_data.encode('utf8').decode('unicode_escape')
+    raw_data = json.loads(json_data)
+    return raw_data
+
+def nextWeekDay(date, weekday):
+    days_ahead = weekday - date.weekday()
+    if days_ahead <= 0: # Target day already happened this week
+        days_ahead += 7
+    return date + timedelta(days_ahead)
