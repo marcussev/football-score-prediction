@@ -52,8 +52,9 @@ def update_all_gameweeks(league, season, gameweeks):
     gw_col_ref = collection.document(league).collection('seasons').document(season).collection('gameweeks')
     for gw in gameweeks:
         data = gameweeks[gw]
-        for game in data:
-            game_data = data[game]
+        batch.set(gw_col_ref.document(str(gw)), {'start_date': data['start_date'], 'end_date': data['end_date']})
+        for game in data['matches']:
+            game_data = data['matches'][game]
             batch.set(gw_col_ref.document(str(gw)).collection('matches').document(game_data['title']), game_data)
 
     res = batch.commit()

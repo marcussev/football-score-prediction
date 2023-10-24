@@ -99,20 +99,23 @@ def get_all_gameweeks(league, season):
             'a_xG': game['xG']['a']
         }
         
-        hasPlayedThisGw = False
+        newGameweek = False
         game_date = datetime.strptime(game['datetime'], '%Y-%m-%d %H:%M:%S')
         if current_gw in gameweeks and current_gw_end < game_date:
-            hasPlayedThisGw = True
+            newGameweek = True
         
-        if hasPlayedThisGw and len(gameweeks[current_gw]) >= 10:
+        if newGameweek:
             current_gw += 1
 
         if current_gw not in gameweeks:
             gameweeks[current_gw] = {}
-            current_gw_start = datetime.strptime(game['datetime'], '%Y-%m-%d %H:%M:%S')
-            current_gw_end = nextWeekDay(current_gw_start, 2)
+            gameweeks[current_gw]['matches'] = {}
+            current_gw_start = previousWeekDay(datetime.strptime(game['datetime'], '%Y-%m-%d %H:%M:%S'), 0).replace(hour=0, minute=0, second=0, microsecond=0)
+            current_gw_end = nextWeekDay(current_gw_start, 6).replace(hour=23, minute=59, second=59)
+            gameweeks[current_gw]['start_date'] = current_gw_start
+            gameweeks[current_gw]['end_date'] = current_gw_end
 
-        gameweeks[current_gw][game_data['title']] = game_data
+        gameweeks[current_gw]['matches'][game_data['title']] = game_data
 
     return gameweeks
 
@@ -128,6 +131,14 @@ def parseSoupString(string):
 
 def nextWeekDay(date, weekday):
     days_ahead = weekday - date.weekday()
-    if days_ahead <= 0: # Target day already happened this week
+    if days_ahead < 0: # Target day already happened this week
         days_ahead += 7
     return date + timedelta(days_ahead)
+
+def previousWeekDay(date, weekday):
+    days_ahead = date.weekday() - weekday
+    if days_ahead < 0:
+        days_ahead -= 7
+    return date - timedelta(days_ahead)
+
+print(get_all_gameweeks('epl', '2023')[2])
