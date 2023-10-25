@@ -2,6 +2,17 @@ from .db import db
 
 collection = db.collection('leagues')
 
+def get_all_leagues():
+    docs = collection.stream()
+    leagues = {}
+    for doc in docs:
+        leagues[doc.id] = doc.to_dict()
+    return leagues
+
+def get_league(league):
+    doc = collection.document(league).get()
+    return doc.to_dict()
+
 def get_all_teams(league):
     docs = collection.document(league).collection('teams').stream()
     teams = {}
@@ -13,27 +24,39 @@ def get_team(league, team):
     doc = collection.document(league).collection('teams').document(team).get()
     return doc.to_dict()
 
-## TODO: fetch list of all seasons for league
 def get_all_seasons(league):
-    return
+    docs = collection.document(league).collection('seasons').stream()
+    seasons = {}
+    for doc in docs:
+        seasons[doc.id] = doc.to_dict()
+    return seasons
 
-## TODO: fetch all round data for given season
 def get_season(league, season):
-    return
+    doc = collection.document(league).collection('seasons').document(season).get()
+    return doc.to_dict()
 
-## TODO: fetch list of all gameweeks for league and season
 def get_all_gameweeks(league, season):
-    return
+    docs = collection.document(league).collection('seasons').document(season).collection('gameweeks').stream()
+    gameweeks = {}
+    for doc in docs:
+        gameweeks[doc.id] = doc.to_dict()
+    return gameweeks
 
-## TODO: fetch all games from given gameweek of given league and season
 def get_gameweek(league, season, gw):
-    return
+    doc = collection.document(league).collection('seasons').document(season).collection('gameweeks').document(gw).get()
+    data = doc.to_dict()
+    match_docs = collection.document(league).collection('seasons').document(season).collection('gameweeks').document(gw).collection('matches').stream()
+    matches = {}
+    for match_doc in match_docs:
+        matches[match_doc.id] = match_doc.to_dict()
+    data['matches'] = matches
+    return data
 
-## TODO: fetch given game
+
 def get_game(league, season, gw, match_id):
-    return
+    doc = collection.document(league).collection('seasons').document(season).collection('gameweeks').document(gw).collection('matches').document(match_id).get()
+    return doc.to_dict()
 
-# Update all team stats
 def update_all_teams(league, teams):
     batch = db.batch()
 
@@ -60,6 +83,5 @@ def update_all_gameweeks(league, season, gameweeks):
     res = batch.commit()
     return res
 
-# Update data for single gameweek of season
 def update_gameweek(league, season, gw):
     return
