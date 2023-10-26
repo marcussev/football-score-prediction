@@ -6,7 +6,7 @@ import os
 
 # Base path for all datasets
 # Change this to your own working directory
-BASE_PATH = 'C:/Users/seval/PycharmProjects/football-score-prediction/'
+BASE_PATH = 'C:/Users/seval/football-score-prediction/'
 
 
 # save a dataset as csv to given path

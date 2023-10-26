@@ -129,6 +129,12 @@ class Trainer:
     def get_epoch_results(self, teams, predicted, actual, correct):
         raise NotImplementedError
 
+    def save_model(self, path):
+        torch.save(self.best_model.state_dict(), path)
+
+    def load_model(self, path):
+        self.model.load_state_dict(torch.load(path))
+
     # HELPER METHOD
     @staticmethod
     def accuracy(correct_predictions, predictions):

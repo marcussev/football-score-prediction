@@ -80,7 +80,6 @@ def get_all_gameweeks(league, season):
 
     gameweeks = {}
 
-
     current_gw = 1
     current_gw_start = None
     current_gw_end = None
@@ -140,5 +139,3 @@ def previousWeekDay(date, weekday):
     if days_ahead < 0:
         days_ahead -= 7
     return date - timedelta(days_ahead)
-
-print(get_all_gameweeks('epl', '2023')[2])

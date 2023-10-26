@@ -17,8 +17,8 @@ class RegressionTrainer(Trainer):
 
     def print_best_results(self):
         df = pd.DataFrame(self.best_results, columns=["teamA", "teamB", "predictedScore", "actualScore", "correct"])
-        df = df.style.applymap(utils.color_cell, subset=["correct"])
-        utils.save_as_excel(df, "results/regression_results.xlsx")
+        #df = df.style.applymap(utils.color_cell, subset=["correct"])
+        #utils.save_as_excel(df, "results/regression_results.xlsx")
         print(df)
 
     def get_result(self, score):
