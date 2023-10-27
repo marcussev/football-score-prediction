@@ -75,7 +75,7 @@ def update_all_gameweeks(league, season, gameweeks):
     gw_col_ref = collection.document(league).collection('seasons').document(season).collection('gameweeks')
     for gw in gameweeks:
         data = gameweeks[gw]
-        batch.set(gw_col_ref.document(str(gw)), {'start_date': data['start_date'], 'end_date': data['end_date']})
+        batch.set(gw_col_ref.document(str(gw)), {'start_date': data['start_date'], 'end_date': data['end_date']}, merge=True)
         for game in data['matches']:
             game_data = data['matches'][game]
             batch.set(gw_col_ref.document(str(gw)).collection('matches').document(game_data['title']), game_data)
@@ -85,3 +85,14 @@ def update_all_gameweeks(league, season, gameweeks):
 
 def update_gameweek(league, season, gw):
     return
+
+def update_predictions(league, season, gw, predictions):
+    batch = db.batch()
+
+    matches_col_ref = collection.document(league).collection('seasons').document(season).collection('gameweeks').document(gw).collection('matches')
+    for pred in predictions:
+        batch.set(matches_col_ref.document(pred), {'A_predicted_score': predictions[pred][0], 'B_predicted_score': predictions[pred][1]}, merge=True)
+
+    res = batch.commit()
+    return res
+

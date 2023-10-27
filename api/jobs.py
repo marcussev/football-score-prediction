@@ -2,7 +2,7 @@ import datascraper
 import db
 import sys
 sys.path.append('../')
-from predictor import Predictor
+from predictor import MLPPredictor, RegressionPredictor
 import torch
 
 def update_team_stats(league, only_newest):
@@ -16,9 +16,10 @@ def update_gameweeks(league, season):
     print(response)
 
 def update_predictions(league, season, gameweek):
-    predictor = Predictor()
+    predictor = RegressionPredictor()
 
     games = db.get_gameweek(league, season, gameweek)
+    predictions = {}
     for game_id in games['matches']:
         game = games['matches'][game_id]
         
@@ -47,7 +48,11 @@ def update_predictions(league, season, gameweek):
         }
 
         predicted_result = predictor.predict_result(torch.tensor(list(input_data.values()), dtype=torch.float))
+        predictions[game_id] = predicted_result
         print(game['home'] + ' vs ' + game['away'])
         print(predicted_result)
 
-update_predictions('epl', '2023', '9')
+    response = db.update_predictions(league, season, gameweek, predictions)
+    print(response)
+
+update_predictions('epl', '2023', '10')
