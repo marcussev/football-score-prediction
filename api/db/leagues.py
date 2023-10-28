@@ -53,7 +53,7 @@ def get_gameweek(league, season, gw):
     return data
 
 
-def get_game(league, season, gw, match_id):
+def get_match(league, season, gw, match_id):
     doc = collection.document(league).collection('seasons').document(season).collection('gameweeks').document(gw).collection('matches').document(match_id).get()
     return doc.to_dict()
 

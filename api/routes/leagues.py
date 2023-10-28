@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from jobs import update_gameweeks, update_team_stats, update_predictions
 
 import db
 
@@ -67,3 +68,35 @@ def get_gameweek(league_id, season_id, gameweek_id):
         return jsonify(res), 200
     except:
         return 'Error: Could not retrieve gameweek', 400
+    
+@leagues_blueprint.route('/<league_id>/seasons/<season_id>/gameweeks/<gameweek_id>/match/match_id', methods=['GET'])
+def get_match(league_id, season_id, gameweek_id, match_id):
+    try:
+        res = db.get_match(league_id, season_id, gameweek_id, match_id)
+        return jsonify(res), 200
+    except:
+        return 'Error: Could not retrieve match', 400
+    
+@leagues_blueprint.route('/<league_id>/seasons/<season_id>/scrape', methods=['POST'])
+def scrape_season(league_id, season_id):
+    try:
+        res = update_gameweeks(league_id, season_id)
+        return jsonify(res), 200
+    except:
+        return 'Error: Could not scrape season', 400
+    
+@leagues_blueprint.route('/<league_id>/teams/scrape', methods=['POST'])
+def scrape_teams(league_id):
+    try:
+        res = update_team_stats(league_id)
+        return jsonify(res), 200
+    except:
+        return 'Error: Could not scrape teams', 400
+    
+@leagues_blueprint.route('/<league_id>/seasons/<season_id>/gameweeks/<gameweek_id>/<gameweek_id>', methods=['POST'])
+def predict_gameweek(league_id, season_id, gameweek_id):
+    try:
+        res = update_predictions(league_id, season_id, gameweek_id)
+        return jsonify(res), 200
+    except:
+        return 'Error: Could not scrape predictions', 400

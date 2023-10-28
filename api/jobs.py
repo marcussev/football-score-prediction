@@ -5,15 +5,15 @@ sys.path.append('../')
 from predictor import MLPPredictor, RegressionPredictor
 import torch
 
-def update_team_stats(league, only_newest):
+def update_team_stats(league):
     teams = datascraper.get_latest_stats(league, '2023')
     response = db.update_all_teams(league, teams)
-    print(response)
+    response
 
 def update_gameweeks(league, season):
     gameweeks = datascraper.get_all_gameweeks(league, season)
     response = db.update_all_gameweeks(league, '2023', gameweeks)
-    print(response)
+    return response
 
 def update_predictions(league, season, gameweek):
     predictor = RegressionPredictor()
@@ -53,6 +53,6 @@ def update_predictions(league, season, gameweek):
         print(predicted_result)
 
     response = db.update_predictions(league, season, gameweek, predictions)
-    print(response)
+    return response
 
 update_predictions('epl', '2023', '10')
