@@ -72,6 +72,3 @@ def process_raw_data(raw, trainDistribution):
     divider = int(len(data) * trainDistribution)
     training_data, testing_data = data[:divider], data[divider:]
     return training_data, testing_data
-
-
-train_regression_model()

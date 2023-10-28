@@ -2,7 +2,7 @@ import datascraper
 import db
 import sys
 sys.path.append('../')
-from predictor import MLPPredictor, RegressionPredictor
+from predictor import RegressionPredictor
 import torch
 
 def update_team_stats(league):
@@ -54,5 +54,3 @@ def update_predictions(league, season, gameweek):
 
     response = db.update_predictions(league, season, gameweek, predictions)
     return response
-
-update_predictions('epl', '2023', '10')
