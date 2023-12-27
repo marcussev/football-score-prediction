@@ -69,7 +69,7 @@ def get_gameweek(league_id, season_id, gameweek_id):
     except:
         return 'Error: Could not retrieve gameweek', 400
     
-@leagues_blueprint.route('/<league_id>/seasons/<season_id>/gameweeks/<gameweek_id>/match/match_id', methods=['GET'])
+@leagues_blueprint.route('/<league_id>/seasons/<season_id>/gameweeks/<gameweek_id>/match/<match_id>', methods=['GET'])
 def get_match(league_id, season_id, gameweek_id, match_id):
     try:
         res = db.get_match(league_id, season_id, gameweek_id, match_id)
@@ -93,7 +93,7 @@ def scrape_teams(league_id):
     except:
         return 'Error: Could not scrape teams', 400
     
-@leagues_blueprint.route('/<league_id>/seasons/<season_id>/gameweeks/<gameweek_id>/<gameweek_id>', methods=['POST'])
+@leagues_blueprint.route('/<league_id>/seasons/<season_id>/gameweeks/<gameweek_id>/predict', methods=['POST'])
 def predict_gameweek(league_id, season_id, gameweek_id):
     try:
         res = update_predictions(league_id, season_id, gameweek_id)
